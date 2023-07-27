@@ -3,6 +3,7 @@ from telegram.ext import Updater, CommandHandler, CallbackContext, Filters, Mess
 from telegram.chataction import ChatAction
 from gtts import gTTS
 from dotenv import load_dotenv
+from booleanConditions import *
 import os
 
 load_dotenv()
@@ -56,7 +57,93 @@ def button(update: Update, context: CallbackContext) -> None:
         update.callback_query.message.reply_text(f'''Привіт {update.effective_user.first_name} \U0001F44B, я вмію конвертувати текст в аудіо формат \U0001F50A. Щоб скористатися функцією натисни ---> /ukrainian\n
 \U0001F4CC Важливо: якщо ти плануєш надіслати дійсно довге текстове повідомлення (понад 3000 символів) --> пам\'ятай, що телеграм автоматично ділить великі повідомлення на менші і надсилає їх окремо.\n
 \U00002757 Це важливо, оскільки що я можу конвертувати тільки перше надіслане повідомлення, тому функцію /ukrainian потрібно буде повторити для кожного окремо надісланого повідомлення.''')
+
+actualInsert = 0
+listInsert = []
+isInserting = False
+polishLang = False
+englishLang = False
+ukrainianLang = False
+
+
+def english(update: Update, context: CallbackContext) -> None:
+    listInsert.clear()
+    resetActualInsert()
+    isInsertingSetTrue()
+    englishLangTrue()
     
+    update.message.reply_text('You can now send me the text in English that you want to convert to audio message')
+
+def polish(update: Update, context: CallbackContext) -> None:
+    listInsert.clear()
+    resetActualInsert()
+    isInsertingSetTrue()
+    polishLangTrue()
+    
+    update.message.reply_text('Możesz teraz przesłać tekst w języku polskim, który chcesz przekonwertować na wiadomość dźwiękową')
+
+def ukrainian(update: Update, context: CallbackContext) -> None:
+    listInsert.clear()
+    resetActualInsert()
+    isInsertingSetTrue()
+    ukrainianLangTrue()
+    
+    update.message.reply_text('Вишли, будь ласка, текст українською мовою, який ти хочеш конвертувати в аудіо формат')
+
+def insertText(update: Update, context: CallbackContext) -> None:
+    if isInserting:
+        listInsert.append(update.message.text)
+        message = ""
+        
+        if actualInsert == 0:
+            if englishLang == True:
+                update.message.reply_text('Here\'s your text in audio message \U0001F5E3')
+                voice_message = gTTS(listInsert[0], lang='en')
+                voice_message.save('voice.mp3')
+                update.message.reply_audio(audio=open('voice.mp3', 'rb'))
+                os.remove('voice.mp3')
+                update.message.reply_text('Press /english to use the function again')
+                englishLangFalse()
+                isInsertingSetFalse()
+                return
+            if polishLang == True:
+                update.message.reply_text('To jest twój tekst w formacie audio \U0001F5E3')
+                voice_message = gTTS(listInsert[0], lang='pl')
+                voice_message.save('wiadomosc.mp3')
+                update.message.reply_audio(audio=open('wiadomosc.mp3', 'rb'))
+                os.remove('wiadomosc.mp3')
+                update.message.reply_text('Wciśnij /polish, żeby ponownie skorzystać z funkcji')
+                polishLangFalse()
+                isInsertingSetFalse()
+                return
+            if ukrainianLang == True:
+                update.message.reply_text('Ось твій текст в аудіо форматі \U0001F5E3')
+                voice_message = gTTS(listInsert[0], lang='uk')
+                voice_message.save('audio.mp3')
+                update.message.reply_audio(audio=open('audio.mp3', 'rb'))
+                os.remove('audio.mp3')
+                update.message.reply_text('Натисни /ukrainian щоб скористатися функцією знову')
+                ukrainianLangFalse()
+                isInsertingSetFalse()
+                return
+            else:
+                error_message = "Problem occurred, please start again ---> /start"
+                update.message.reply_text(error_message)
+                isInsertingSetFalse()  
+                ukrainianLangFalse()
+                englishLangFalse()
+                polishLangFalse()
+        increaseActualInsert()
+        update.message.reply_text(message)
+
+def resetActualInsert():
+    global actualInsert 
+    actualInsert = 0
+
+def increaseActualInsert():
+    global actualInsert
+    actualInsert = actualInsert + 1
+
 def main() -> None:
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
@@ -65,6 +152,10 @@ def main() -> None:
     dp.add_handler(CommandHandler('stop', stop))
     dp.add_handler(CommandHandler('help', help))
     dp.add_handler(CallbackQueryHandler(button))
+    dp.add_handler(CommandHandler('english', english))
+    dp.add_handler(CommandHandler('polish', polish))
+    dp.add_handler(CommandHandler('ukrainian', ukrainian))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, insertText))
 
     updater.start_polling()
     updater.idle()
