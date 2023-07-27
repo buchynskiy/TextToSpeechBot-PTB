@@ -17,13 +17,6 @@ Add a API TOKEN to the .env file:
 ```
 You can now run the bot :)
 
-## 3-d party libraries used:
-
-- python-telegram-bot (main)
-- gTTS
-- python-dotenv
-- langdetect
-
 ## Related
 [What are Telegram Bots](https://core.telegram.org/bots/features)
 
