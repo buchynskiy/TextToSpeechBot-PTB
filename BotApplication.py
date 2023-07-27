@@ -20,6 +20,21 @@ def start(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Please select a language:',
     reply_markup=reply_buttons)
 
+def stop(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Bot is on pause \U000023F8\nUse /start or /help in order to\nuse the bot again.")
+
+def help(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("""
+
+
+Available commands:
+
+/start --> Restart a bot
+/help --> Available commands
+/english --> Convert in English
+/polish --> Convert in Polish
+/ukrainian --> Convert in Ukrainian
+""")
 
 def main() -> None:
     updater = Updater(TOKEN, use_context=True)
